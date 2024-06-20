@@ -20,6 +20,25 @@ select datediff(yy,'2002/01/20',getdate());
 alter table product add discount as CAST('1' AS INT)
 select productid from product;
 
+--4--
+create table cal(
+[date] date,
+[dayofyear] as DATEPART(DAYOFYEAR, [date]),
+[week] as DATEPART(WEEK, [date]),
+[dayofweek] as DATEPART(WEEKDAY,[date]),
+[month] as DATEPART(MONTH, [date]),
+[dateofmonth] as DATEPART(DAY, [date])
+);
+
+DECLARE @year INT = 2018
+DECLARE @date DATE = CONCAT(@year, '/01/01')
+ 
+WHILE (YEAR(@date)=@year)
+BEGIN
+	INSERT INTO cal VALUES (@date)
+	SET @date = DATEADD(d, 1, @date)
+END
+select * from cal;
 
 --5--Display Emp and Manager Hierarchies based on the input till the topmost hierarchy. (Input would be empid)
 --Output: Empid, empname, managername, heirarchylevel
@@ -39,7 +58,7 @@ SELECT h.empid,h.empname,e.empname,h.hierarchylevel
 from hier h
 LEFT JOIN employ e ON h.managerid = e.empid;
 
---4--
+
 
 
 
