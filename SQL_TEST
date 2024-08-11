@@ -1,0 +1,161 @@
+1)
+A)CREATE PROCEDURE GetPatientDetailsByDoctorID (
+    IN p_doctor_id INT
+)
+BEGIN
+    SELECT P.patient_id, P.name, P.age, P.gender, P.address, P.disease, SUM(L.amount) AS total_amount
+    FROM Patient P
+    LEFT JOIN Laboratory L ON P.patient_id = L.patient_id
+    WHERE P.doctor_id = p_doctor_id
+    GROUP BY P.patient_id, P.name, P.age, P.gender, P.address, P.disease;
+END;
+
+
+B)CREATE PROCEDURE GetNthHighestPaidPatient ( IN p_n INT, OUT p_patient_id INT, OUT p_patient_name VARCHAR(50) )
+BEGIN
+    DECLARE p_invalid_id INT DEFAULT -1;
+    DECLARE p_invalid_name VARCHAR(50) DEFAULT 'Invalid User';
+
+    SET p_patient_id = p_invalid_id;
+    SET p_patient_name = p_invalid_name;
+
+    IF p_n > 0 THEN
+        SELECT patient_id, name INTO p_patient_id, p_patient_name
+        FROM (
+            SELECT P.patient_id, P.name, SUM(L.amount) AS total_amount
+            FROM Patient P
+            LEFT JOIN Laboratory L ON P.patient_id = L.patient_id
+            GROUP BY P.patient_id, P.name
+            ORDER BY total_amount DESC
+            LIMIT 1 OFFSET p_n - 1
+        ) ranked;
+    END IF;
+END;
+
+2)
+WITH getcte AS (
+    SELECT 
+        SUM(o.purch_amt) AS total_sum, 
+        o.ord_date 
+    FROM 
+        Orders o 
+    JOIN 
+        Customer c 
+    ON 
+        o.customer_id = c.customer_id
+    GROUP BY 
+        o.ord_date
+    HAVING 
+        SUM(o.purch_amt) >= 1000
+)
+SELECT 
+    DISTINCT ord_date, total_sum 
+FROM 
+    getcte
+ORDER BY 
+    total_sum DESC;
+    
+3)
+WITH SecondLowestDept AS (
+    SELECT 
+        dpt_code
+    FROM 
+        emp_department 
+    ORDER BY 
+        sanct_amount 
+    OFFSET 1 ROW 
+    FETCH NEXT 1 ROW ONLY
+)
+SELECT 
+    ed.EMP_FNAME, 
+    ed.EMP_LNAME
+FROM 
+    emp_details ed
+JOIN 
+    SecondLowestDept sld
+ON 
+    ed.EMP_DEPT = sld.dpt_code;
+    
+  
+5)
+
+DECLARE @name NVARCHAR(20)
+SET @name = 'IsArchieve' 
+SELECT * 
+FROM table 
+WHERE (@name = 'IsArchieve' AND IsArchieve = 0 AND IsActive = 1) 
+OR (@name = 'IsDeleted' AND IsDeleted = 0 AND IsActive = 0)
+   
+  
+  
+ 6)SELECT 
+    h.hacker_id, 
+    h.name, 
+    SUM(s.max_score) AS total 
+FROM 
+    Hacker h 
+INNER JOIN (
+    SELECT 
+        hacker_id, 
+        MAX(score) AS max_score 
+    FROM 
+        Submissions 
+    GROUP BY 
+        hacker_id
+) s ON h.hacker_id = s.hacker_id 
+GROUP BY 
+    h.hacker_id, 
+    h.name 
+HAVING 
+    SUM(s.max_score) > 0 
+ORDER BY 
+    total DESC, 
+    h.hacker_id ASC
+    
+       
+  7)SELECT 
+    CASE 
+        WHEN g.grade < 8 THEN NULL 
+        ELSE S.Name 
+    END AS StudentName, 
+    g.grade, 
+    s.marks 
+FROM 
+    STUDENTS S 
+JOIN 
+    grade g ON s.marks BETWEEN g.min_marks AND g.max_mark 
+ORDER BY 
+    g.grade DESC, 
+    StudentName ASC, 
+    marks ASC;
+       
+       
+    
+ 
+ 
+ 8)WITH CTE AS (
+    SELECT 
+        Start_Date, 
+        (
+            SELECT TOP 1 End_date 
+            FROM Projects t1 
+            WHERE NOT EXISTS (
+                SELECT 1 
+                FROM Projects t2 
+                WHERE t2.Start_date = t1.End_date
+            ) 
+            AND t1.End_date >= t3.End_date
+        ) AS Last_date 
+    FROM 
+        Projects t3
+)
+SELECT 
+    MIN(CTE.START_DATE) AS STARTDATE, 
+    MAX(CTE.LAST_DATE) AS LASTDATE 
+FROM 
+    CTE 
+GROUP BY 
+    CTE.LAST_DATE 
+ORDER BY 
+    DATEDIFF(dd, MIN(CTE.START_DATE), MAX(CTE.LAST_DATE)), 
+    STARTDATE;
